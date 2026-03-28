@@ -1,5 +1,6 @@
 CONFIG = {
     "models": {
+        "linear": {},
         "lasso": {
             "param_grid": {
                 "model__alpha": [0.001, 0.01, 0.1, 1.0]

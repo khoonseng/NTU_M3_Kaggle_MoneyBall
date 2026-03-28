@@ -7,6 +7,7 @@ from sklearn.linear_model import LinearRegression, Lasso
 
 from src.pipelines.preprocessing import build_preprocessor
 from src.pipelines.pipeline_builder import build_pipeline
+from src.pipelines.model_factory import get_model
 from src.models.evaluate import evaluate
 from src.tuning.tuning import run_grid_search, extract_best_per_metric
 from src.experiments.tracker import log_experiment
@@ -71,7 +72,10 @@ def main():
     # -------------------------
     # 3. Baseline: Linear Regression
     # -------------------------
-    lr_model = LinearRegression()
+    # lr_model = LinearRegression()
+    model_name = "linear"
+    params = CONFIG["models"][model_name]
+    lr_model = get_model(model_name, params)
     lr_pipeline = build_pipeline(preprocessor, lr_model)
 
     lr_pipeline.fit(X_train, y_train)
@@ -101,6 +105,9 @@ def main():
     # 4. Lasso with GridSearchCV
     # -------------------------
     # lasso_model = Lasso(max_iter=10000)
+    # model_name = "lasso"
+    # params = CONFIG["models"][model_name]
+    # lasso_model = get_model(model_name, params)
     # lasso_pipeline = build_pipeline(preprocessor, lasso_model)
 
     # param_grid = CONFIG["models"]["lasso"]["param_grid"]
