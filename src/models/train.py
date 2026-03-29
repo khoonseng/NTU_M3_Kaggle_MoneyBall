@@ -4,6 +4,7 @@ from src.config.config import CONFIG
 from src.pipelines.model_factory import get_model
 from src.pipelines.pipeline_builder import build_pipeline
 from src.models.evaluate import evaluate
+from src.models.prediction import run_prediction
 from src.experiments.tracker import log_experiment
 from src.tuning.tuning import run_grid_search, extract_best_per_metric
 
@@ -84,4 +85,30 @@ def train_model(model_name, preprocessor, X_train, y_train, X_test, y_test, use_
             # cv_results=cv_summary
         )
 
-    return pipeline    
+    return pipeline
+
+def run_all_models(preprocessor, X_train, y_train, X_test, y_test, predict_df, available_features):
+    trained_pipelines = {}
+
+    for model_cfg in CONFIG["models_to_run"]:
+        model_name = model_cfg["name"]
+        use_grid = model_cfg["gridsearch"]
+
+        print(f"\n===== Training {model_name.upper()} (GridSearch={use_grid}) =====")
+
+        pipeline = train_model(
+            model_name=model_name,
+            preprocessor=preprocessor,
+            X_train=X_train,
+            y_train=y_train,
+            X_test=X_test,
+            y_test=y_test,
+            use_GridSearch=use_grid
+        )
+
+        trained_pipelines[model_name] = pipeline
+
+        # Run prediction
+        run_prediction(predict_df, available_features, pipeline)
+
+    return trained_pipelines

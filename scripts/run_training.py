@@ -2,8 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from src.pipelines.preprocessing import build_preprocessor
-from src.models.prediction import run_prediction
-from scripts.train_model import train_model
+from src.models.train import run_all_models
 
 def main():
     # -------------------------
@@ -62,46 +61,18 @@ def main():
     preprocessor = build_preprocessor(other_cols, None)
 
     # -------------------------
-    # 3. Baseline: Linear Regression
+    # 3. Run pipelines and predictions
     # -------------------------
-    lr_pipeline = train_model(
-        model_name="linear", 
+    trained_pipelines = run_all_models(
         preprocessor=preprocessor, 
         X_train=X_train, 
         y_train=y_train, 
         X_test=X_test, 
         y_test=y_test,
-        use_GridSearch=False
+        predict_df=predict_df,
+        available_features=available_features
     )
-    run_prediction(predict_df, available_features, lr_pipeline)
-
-    # -------------------------
-    # 4. Lasso with GridSearchCV
-    # -------------------------
-    lasso_pipeline = train_model(
-        model_name="lasso", 
-        preprocessor=preprocessor, 
-        X_train=X_train, 
-        y_train=y_train, 
-        X_test=X_test, 
-        y_test=y_test,
-        use_GridSearch=True
-    )
-    run_prediction(predict_df, available_features, lasso_pipeline)
-
-    # -------------------------
-    # 5. Ridge with GridSearchCV
-    # -------------------------
-    ridge_pipeline = train_model(
-        model_name="ridge", 
-        preprocessor=preprocessor, 
-        X_train=X_train, 
-        y_train=y_train, 
-        X_test=X_test, 
-        y_test=y_test,
-        use_GridSearch=True
-    )
-    run_prediction(predict_df, available_features, ridge_pipeline)
+    print(trained_pipelines)
 
 if __name__ == "__main__":
     main()
