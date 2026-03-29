@@ -1,17 +1,9 @@
 import pandas as pd
-import numpy as np
-import os
-from pathlib import Path
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression, Lasso
 
 from src.pipelines.preprocessing import build_preprocessor
-from src.pipelines.pipeline_builder import build_pipeline
-from src.pipelines.model_factory import get_model
-from src.models.evaluate import evaluate
-from src.tuning.tuning import run_grid_search, extract_best_per_metric
-from src.experiments.tracker import log_experiment
-from src.config.config import CONFIG
+from src.models.prediction import run_prediction
+from scripts.train_model import train_model
 
 def main():
     # -------------------------
@@ -72,106 +64,44 @@ def main():
     # -------------------------
     # 3. Baseline: Linear Regression
     # -------------------------
-    # lr_model = LinearRegression()
-    model_name = "linear"
-    params = CONFIG["models"][model_name]
-    lr_model = get_model(model_name, params)
-    lr_pipeline = build_pipeline(preprocessor, lr_model)
-
-    lr_pipeline.fit(X_train, y_train)
-    y_pred_lr = lr_pipeline.predict(X_test)
-
-    lr_results = evaluate(y_test, y_pred_lr)
-    print("\nLinear Regression Results:", lr_results)
-
-    # Feature importance from Linear Regression
-    print(lr_pipeline)
-    lr_pipeline_model = lr_pipeline.named_steps["model"]
-    lr_pipeline_preprocessor = lr_pipeline.named_steps["preprocessor"]
-    lr_pipeline_feature_names = lr_pipeline_preprocessor.get_feature_names_out()
-    lr_pipeline_coefficients = lr_pipeline_model.coef_
-
-    feature_importance = pd.DataFrame({
-        'Feature': lr_pipeline_feature_names,
-        'Coefficient': lr_pipeline_coefficients
-    }).sort_values('Coefficient', key=abs, ascending=False)
-
-    print("\nTop 10 Most Important Features:")
-    print(feature_importance.head(10))
-
-    log_experiment(lr_results, {}, "linear")
+    lr_pipeline = train_model(
+        model_name="linear", 
+        preprocessor=preprocessor, 
+        X_train=X_train, 
+        y_train=y_train, 
+        X_test=X_test, 
+        y_test=y_test,
+        use_GridSearch=False
+    )
+    run_prediction(predict_df, available_features, lr_pipeline)
 
     # -------------------------
     # 4. Lasso with GridSearchCV
     # -------------------------
-    # lasso_model = Lasso(max_iter=10000)
-    # model_name = "lasso"
-    # params = CONFIG["models"][model_name]
-    # lasso_model = get_model(model_name, params)
-    # lasso_pipeline = build_pipeline(preprocessor, lasso_model)
+    lasso_pipeline = train_model(
+        model_name="lasso", 
+        preprocessor=preprocessor, 
+        X_train=X_train, 
+        y_train=y_train, 
+        X_test=X_test, 
+        y_test=y_test,
+        use_GridSearch=True
+    )
+    run_prediction(predict_df, available_features, lasso_pipeline)
 
-    # param_grid = CONFIG["models"]["lasso"]["param_grid"]
-    # scoring = CONFIG["scoring"]
-    # refit_metric = CONFIG["refit_metric"]
-
-    # grid = run_grid_search(
-    #     lasso_pipeline,
-    #     param_grid,
-    #     X_train,
-    #     y_train,
-    #     scoring,
-    #     refit_metric
-    # )
-
-    # # check best params
-    # best_params = grid.best_params_
-    # best_score = grid.best_score_
-    # print(f"Best Lasso Parameters: {best_params}")
-    # print(f"Best Lasso Score: {best_score:.4f}")
-
-    # best_model = grid.best_estimator_
-    # y_pred_lasso = best_model.predict(X_test)
-
-    # lasso_results = evaluate(y_test, y_pred_lasso)
-
-    # print("\nBest Lasso Params (refit metric):", grid.best_params_)
-    # print("Lasso Results:", lasso_results)
-
-    # # Extract best per metric
-    # best_per_metric = extract_best_per_metric(grid)
-
-    # print("\nBest Params Per Metric:")
-    # for metric, info in best_per_metric.items():
-    #     print(metric, "->", info)
-
-    # # Prepare CV summary
-    # cv_summary = {
-    #     metric: info["score"]
-    #     for metric, info in best_per_metric.items()
-    # }
-
-    # log_experiment(
-    #     lasso_results,
-    #     grid.best_params_,
-    #     "lasso",
-    #     cv_results=cv_summary
-    # )
-
-    # Prepare Submission
-    predict_X = predict_df[available_features].copy()
-    predict_preds = lr_pipeline.predict(predict_X)
-
-    # Build submission in the same format as submission.csv
-    submission_df = pd.DataFrame({
-        'ID': predict_df['ID'],
-        'W': np.round(predict_preds).astype(int)
-    })
-
-    PROJECT_ROOT = Path(os.environ.get("LOCAL_DATA_DIR", Path.cwd())).resolve()    
-    LOCAL_SUBMISSION_FILE = PROJECT_ROOT.home().name + "_submission_predict.csv"
-    submission_path = PROJECT_ROOT / "submission" / LOCAL_SUBMISSION_FILE
-    submission_df.to_csv(submission_path, index=False)
-    print(f"Kaggle submission saved to {submission_path}")
+    # -------------------------
+    # 5. Ridge with GridSearchCV
+    # -------------------------
+    ridge_pipeline = train_model(
+        model_name="ridge", 
+        preprocessor=preprocessor, 
+        X_train=X_train, 
+        y_train=y_train, 
+        X_test=X_test, 
+        y_test=y_test,
+        use_GridSearch=True
+    )
+    run_prediction(predict_df, available_features, ridge_pipeline)
 
 if __name__ == "__main__":
     main()
