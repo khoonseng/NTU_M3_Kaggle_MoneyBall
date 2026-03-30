@@ -1,9 +1,9 @@
 CONFIG = {
     "models_to_run": [        
         {"name": "linear", "gridsearch": False},
-        {"name": "lasso", "gridsearch": True},
-        {"name": "ridge", "gridsearch": True},
-        {"name": "elasticnet", "gridsearch": True},
+        # {"name": "lasso", "gridsearch": True},
+        # {"name": "ridge", "gridsearch": True},
+        # {"name": "elasticnet", "gridsearch": True},
     ],
     "models": {
         "linear": {
@@ -15,8 +15,8 @@ CONFIG = {
                 "random_state": 30
             },
             "param_grid": {
-                "model__alpha": [0.001, 0.01, 0.1, 1.0],
-                "model__max_iter": [5000, 10000],
+                "model__alpha": [0.01, 0.1, 1.0],
+                "model__max_iter": [5000, 10000, 15000, 20000],
                 "model__tol": [1e-4, 1e-3, 1e-2],
                 "model__selection": ["cyclic", "random"]
             }

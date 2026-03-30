@@ -21,20 +21,8 @@ def train_model(model_name, preprocessor, X_train, y_train, X_test, y_test, use_
         results = evaluate(y_test, y_pred, n_features)
         print("\nLinear Regression Results:", results)
 
-        # Feature importance from Linear Regression
-        print(pipeline)
-        pipeline_model = pipeline.named_steps["model"]
-        pipeline_preprocessor = pipeline.named_steps["preprocessor"]
-        pipeline_feature_names = pipeline_preprocessor.get_feature_names_out()
-        pipeline_coefficients = pipeline_model.coef_
-
-        feature_importance = pd.DataFrame({
-            'Feature': pipeline_feature_names,
-            'Coefficient': pipeline_coefficients
-        }).sort_values('Coefficient', key=abs, ascending=False)
-
-        print("\nTop 20 Most Important Features:")
-        print(feature_importance.head(20))
+        # Top 20 Features
+        display_top_features(best_model=pipeline, no_of_features=20)
     
         log_experiment(results, {}, model_name)
 
@@ -77,13 +65,16 @@ def train_model(model_name, preprocessor, X_train, y_train, X_test, y_test, use_
         cv_summary = {
             metric: info["score"]
             for metric, info in best_per_metric.items()
-        }              
+        }
+
+        # Top 20 Features
+        display_top_features(best_model=best_model, no_of_features=20)
 
         log_experiment(
             results,
             grid.best_params_,
             model_name,
-            # cv_results=cv_summary
+            cv_results=cv_summary
         )
 
     return pipeline
@@ -113,3 +104,18 @@ def run_all_models(preprocessor, X_train, y_train, X_test, y_test, predict_df, a
         run_prediction(predict_df, available_features, pipeline)
 
     return trained_pipelines
+
+def display_top_features(best_model, no_of_features: int):
+    print(f"Best model:\n", best_model)
+    pipeline_model = best_model.named_steps["model"]
+    pipeline_preprocessor = best_model.named_steps["preprocessor"]
+    pipeline_feature_names = pipeline_preprocessor.get_feature_names_out()
+    pipeline_coefficients = pipeline_model.coef_
+
+    feature_importance = pd.DataFrame({
+        'Feature': pipeline_feature_names,
+        'Coefficient': pipeline_coefficients
+    }).sort_values('Coefficient', key=abs, ascending=False)
+
+    print(f"\nTop {no_of_features} Most Important Features:")
+    print(feature_importance.head(no_of_features))
