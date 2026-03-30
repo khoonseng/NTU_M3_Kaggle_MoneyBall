@@ -143,7 +143,7 @@ def main():
         predict_df=predict_df,
         available_features=available_features
     )
-    print(trained_pipelines)
+    # print(trained_pipelines)
 
 if __name__ == "__main__":
     main()
