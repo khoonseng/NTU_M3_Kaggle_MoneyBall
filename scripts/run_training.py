@@ -7,10 +7,32 @@ from src.models.train import run_all_models
 def add_advanced_metrics(df):
     df_advanced = df.copy()
 
-    # Normalizing Runs (R), Home Runs (HR) and Strikeouts (SO) per game
+    # Normalizing 9 offensive stats per game
     df_advanced['R_per_G'] = df_advanced['R'] / df_advanced['G']
+    df_advanced['AB_per_G'] = df_advanced['AB'] / df_advanced['G']    
+    df_advanced['H_per_G'] = df_advanced['H'] / df_advanced['G']
+    df_advanced['2B_per_G'] = df_advanced['2B'] / df_advanced['G']
+    df_advanced['3B_per_G'] = df_advanced['3B'] / df_advanced['G']
     df_advanced['HR_per_G'] = df_advanced['HR'] / df_advanced['G']
+    df_advanced['BB_per_G'] = df_advanced['BB'] / df_advanced['G']
     df_advanced['SO_per_G'] = df_advanced['SO'] / df_advanced['G']
+    df_advanced['SB_per_G'] = df_advanced['SB'] / df_advanced['G']
+
+    # Normalizing 10 pitching stats per game
+    df_advanced['RA_per_G'] = df_advanced['RA'] / df_advanced['G']
+    df_advanced['ER_per_G'] = df_advanced['ER'] / df_advanced['G']
+    df_advanced['CG_per_G'] = df_advanced['CG'] / df_advanced['G']
+    df_advanced['SHO_per_G'] = df_advanced['SHO'] / df_advanced['G']
+    df_advanced['SV_per_G'] = df_advanced['SV'] / df_advanced['G']
+    df_advanced['IPouts_per_G'] = df_advanced['IPouts'] / df_advanced['G']
+    df_advanced['HA_per_G'] = df_advanced['HA'] / df_advanced['G']
+    df_advanced['HRA_per_G'] = df_advanced['HRA'] / df_advanced['G']
+    df_advanced['BBA_per_G'] = df_advanced['BBA'] / df_advanced['G']
+    df_advanced['SOA_per_G'] = df_advanced['SOA'] / df_advanced['G']
+
+    # Normalizing 2 defensive stats per game
+    df_advanced['E_per_G'] = df_advanced['E'] / df_advanced['G']
+    df_advanced['DP_per_G'] = df_advanced['DP'] / df_advanced['G']
 
     # 2. Inning-based Pitching Metrics
     # First, convert IPouts to fractional Innings Pitched (IP)
@@ -31,9 +53,12 @@ def add_advanced_metrics(df):
     # Steps to calculate OPS (OBP + SLG)
     # Step 1: Calculate Singles (optional but good for visibility)
     df_advanced['1B'] = df_advanced['H'] - (df_advanced['2B'] + df_advanced['3B'] + df_advanced['HR'])
+    # normalize per-game stats
+    df_advanced['1B_per_G'] = df_advanced['1B'] / df_advanced['G'] 
 
     # Step 2: Calculate Total Bases (the numerator for SLG)
     df_advanced['Total_Bases'] = df_advanced['1B'] + (2 * df_advanced['2B']) + (3 * df_advanced['3B']) + (4 * df_advanced['HR'])
+    df_advanced['Total_Bases_per_G'] = df_advanced['Total_Bases'] / df_advanced['G']
 
     # Step 3: Calculate Slugging Percentage (SLG)
     df_advanced['SLG'] = df_advanced['Total_Bases'] / df_advanced['AB']
@@ -44,8 +69,11 @@ def add_advanced_metrics(df):
     # Step 5: Calculate On-Base Plus Slugging (OPS)
     df_advanced['OPS'] = df_advanced['OBP'] + df_advanced['SLG']
 
-    # Remove original features after adding metrics
-    # original_features = ['R', 'HR', 'SO', 'IPouts', 'BBA', 'HA', 'ER', 'H', 'AB', '2B', '3B', 'BB']
+    # Remove original features after adding metrics [Leave the removal of features to Lasso instead of manually removing them]
+    # original_offensive_features = ['R', 'AB', 'H', '2B', '3B', 'HR', 'BB', 'SO', 'SB']
+    # original_pitching_features = ['RA', 'ER', 'CG', 'SHO', 'SV', 'IPouts', 'HA', 'HRA', 'BBA', 'SOA']
+    # original_defensive_features = ['E', 'DP']
+    # original_features = original_offensive_features + original_pitching_features + original_defensive_features
     # df_advanced = df_advanced.drop(original_features, axis=1)
 
     return df_advanced
@@ -54,8 +82,8 @@ def main():
     # -------------------------
     # 1. Load data
     # -------------------------
-    data_df = pd.read_csv("data/data.csv")
-    predict_df = pd.read_csv("data/predict.csv")
+    data_df = pd.read_csv("data/data_year_team_franchise.csv")
+    predict_df = pd.read_csv("data/predict_year_team_franchise.csv")
 
     # Display basic information about the datasets
     print(f"Data set shape: {data_df.shape}")
@@ -66,7 +94,7 @@ def main():
         # Basic Statistics
         'G', 'R', 'AB', 'H', '2B', '3B', 'HR', 'BB', 'SO', 'SB', 'CS', 'HBP', 'SF',
         'RA', 'ER', 'ERA', 'CG', 'SHO', 'SV', 'IPouts', 'HA', 'HRA', 'BBA', 'SOA',
-        'E', 'DP', 'FP', 'attendance', 'BPF', 'PPF',
+        'E', 'DP', 'FP', 'attendance', 'BPF', 'PPF', 'yearID', 'teamID', 'franchID',
         
         # Derived Features
         'R_per_game', 'RA_per_game', 'mlb_rpg',
@@ -80,10 +108,14 @@ def main():
     ]
 
     # Advanced metrics
-    advanced_metrics = ['R_per_G', 'HR_per_G', 'SO_per_G', 'IP', 'WHIP', 'BA', 'OBP', 'SLG', 'OPS']
+    advanced_metrics = ['IP', 'WHIP', 'BA', 'OBP', 'SLG', 'OPS']
+    offensive_per_game_metrics = ['R_per_G', 'AB_per_G', 'H_per_G', '2B_per_G', '3B_per_G', 'HR_per_G', 'BB_per_G', 'SO_per_G', 'SB_per_G', '1B_per_G', 'Total_Bases_per_G']
+    pitching_per_game_metrics = ['RA_per_G', 'ER_per_G', 'CG_per_G', 'SHO_per_G', 'SV_per_G', 'IPouts_per_G', 'HA_per_G', 'HRA_per_G', 'BBA_per_G', 'SOA_per_G'] 
+    defensive_per_game_metrics = ['E_per_G', 'DP_per_G']
+    normalize_metrics = offensive_per_game_metrics + pitching_per_game_metrics + defensive_per_game_metrics
 
     # Combine all features
-    all_features = default_features + advanced_metrics
+    all_features = default_features + advanced_metrics + normalize_metrics
 
     data_df = add_advanced_metrics(data_df)
     predict_df = add_advanced_metrics(predict_df)
@@ -93,6 +125,7 @@ def main():
     print(f"Total number of features: {len(available_features)}")
     print(f"Number of default features: {len([c for c in default_features if c in available_features])}")
     print(f"Number of advanced metrics: {len([c for c in advanced_metrics if c in available_features])}")
+    print(f"Number of normalized metrics: {len([c for c in normalize_metrics if c in available_features])}")
 
     # convert boolean to integers
     # bool_cols = [col for col in available_features if col.startswith(('era_', 'decade_'))]
@@ -102,7 +135,7 @@ def main():
     # Separate features and target variable
     X = data_df[available_features]
     y = data_df['W']
-    # print("X data types:\n", X.dtypes)
+    print(X.info())
 
     # Remove era/decade columns
     # one_hot_cols = [col for col in X.columns if col.startswith(('era_', 'decade_'))]
@@ -125,11 +158,15 @@ def main():
     # -------------------------
     # Scale features
     # Identify columns to exclude from scaling (one-hot encoded and label columns)
-    one_hot_cols = [col for col in X_train.columns if col.startswith(('era_', 'decade_'))]
-    other_cols = [col for col in X_train.columns if col not in one_hot_cols]
-
-    # preprocessor = build_preprocessor(num_features=other_cols, cat_features=one_hot_cols)
-    preprocessor = build_preprocessor(num_features=other_cols, cat_features=None)
+    other_cols = [col for col in X_train.columns if col.startswith(('franchID', 'teamID', 'decade_label'))]
+    categorical_cols = [col for col in X_train.columns if col.startswith(('era_', 'decade_')) and col not in other_cols]
+    numerical_cols = [col for col in X_train.columns if col not in categorical_cols and col not in other_cols]
+    # print(f"other_cols ...", other_cols)
+    # print(f"categorical_cols", categorical_cols)
+    # print(f"numerical_cols", numerical_cols)
+    
+    # preprocessor = build_preprocessor(num_features=numerical_cols, cat_features=categorical_cols)
+    preprocessor = build_preprocessor(num_features=numerical_cols, cat_features=None)
 
     # -------------------------
     # 3. Run pipelines and predictions

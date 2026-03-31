@@ -27,10 +27,10 @@ CONFIG = {
                 "random_state": 30
             },
             "param_grid": {
-                "model__alpha": [1e-4, 1e-3, 1e-2, 0.1, 1.0, 10.0],
+                "model__alpha": [1e-3, 1e-2, 0.1, 1.0, 10.0],
                 "model__solver": ["auto", "lsqr", "saga"],
                 "model__max_iter": [None, 1000, 5000, 10000],
-                "model__tol": [1e-4, 1e-3, 1e-2]
+                "model__tol": [1e-3, 1e-2]
             }
         },
         "elasticnet": {
@@ -38,7 +38,7 @@ CONFIG = {
                 "random_state": 30
             },
             "param_grid": {
-                "model__alpha": [1e-4, 1e-3, 1e-2, 0.1, 1.0, 10.0],
+                "model__alpha": [1e-2, 0.1, 1.0, 10.0],
                 "model__max_iter": [5000, 10000],
                 "model__l1_ratio": [0.1, 0.3, 0.5, 0.7, 0.9],
                 "model__tol": [1e-4, 1e-3, 1e-2],
