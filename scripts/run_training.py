@@ -2,7 +2,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from src.pipelines.preprocessing import build_preprocessor
-from src.models.train import run_all_models
+from src.models.train import run_all_models, run_ensemble
+from src.models.prediction import run_prediction
+from src.config.config import ENSEMBLE_CONFIG 
 
 def add_advanced_metrics(df):
     df_advanced = df.copy()
@@ -181,6 +183,15 @@ def main():
         available_features=available_features
     )
     # print(trained_pipelines)
+
+    if ENSEMBLE_CONFIG["enabled"]:
+        # Number of features for meta-model is simply the number of base model predictions
+        n_features = len(ENSEMBLE_CONFIG["base_models"])
+        ensemble_model = run_ensemble(
+            X_train, y_train, X_test, y_test, ENSEMBLE_CONFIG, n_features
+        )
+
+        run_prediction(predict_df, available_features, ensemble_model)
 
 if __name__ == "__main__":
     main()
