@@ -1,9 +1,9 @@
 CONFIG = {
     "models_to_run": [        
         {"name": "linear", "gridsearch": False},
-        # {"name": "lasso", "gridsearch": True},
-        # {"name": "ridge", "gridsearch": True},
-        # {"name": "elasticnet", "gridsearch": True},
+        {"name": "lasso", "gridsearch": True},
+        {"name": "ridge", "gridsearch": True},
+        {"name": "elasticnet", "gridsearch": True}
     ],
     "models": {
         "linear": {
@@ -52,4 +52,12 @@ CONFIG = {
         "r2": "r2"
     },
     "refit_metric": "mae"  # primary metric for selecting best model
+}
+
+ENSEMBLE_CONFIG = {
+    "enabled": True,
+    "base_models": ["linear", "lasso", "ridge", "elasticnet"],
+    "final_model": "ridge",  # or "elasticnet"
+    "use_saved_models": True,
+    "model_dir": "models"
 }

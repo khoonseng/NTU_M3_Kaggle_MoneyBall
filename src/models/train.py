@@ -1,15 +1,26 @@
 import pandas as pd
+import os
 
-from src.config.config import CONFIG
+from src.config.config import CONFIG, ENSEMBLE_CONFIG
 from src.pipelines.model_factory import get_model
 from src.pipelines.pipeline_builder import build_pipeline
 from src.models.evaluate import evaluate
 from src.models.prediction import run_prediction
+from src.models.model_util import save_model
 from src.experiments.tracker import log_experiment
 from src.tuning.tuning import run_grid_search, extract_best_per_metric
+from src.models.ensemble import build_stacking_model
+from src.models.model_util import load_model
 
 
 def train_model(model_name, preprocessor, X_train, y_train, X_test, y_test, use_GridSearch):
+    model_path = os.path.join(ENSEMBLE_CONFIG["model_dir"], f"{model_name}.pkl")
+
+    if ENSEMBLE_CONFIG["use_saved_models"] and os.path.exists(model_path):
+        print(f"Loading existing model: {model_name}")
+        return load_model(model_name, ENSEMBLE_CONFIG["model_dir"])
+    
+    
     params = CONFIG["models"][model_name]["params"]
     model = get_model(model_name, params)
     pipeline = build_pipeline(preprocessor, model)
@@ -77,6 +88,10 @@ def train_model(model_name, preprocessor, X_train, y_train, X_test, y_test, use_
             cv_results=cv_summary
         )
 
+    # Save model
+    if ENSEMBLE_CONFIG["use_saved_models"]:
+        save_model(pipeline, model_name, ENSEMBLE_CONFIG["model_dir"])
+
     return pipeline
 
 def run_all_models(preprocessor, X_train, y_train, X_test, y_test, predict_df, available_features):
@@ -119,3 +134,18 @@ def display_top_features(best_model, no_of_features: int):
 
     print(f"\nTop {no_of_features} Most Important Features:")
     print(feature_importance.head(no_of_features))
+
+def run_ensemble(X_train, y_train, X_test, y_test, config, n_features):
+    stacking_model = build_stacking_model(config=config)
+
+    stacking_model.fit(X_train, y_train)
+    y_pred = stacking_model.predict(X_test)
+    results = evaluate(y_test, y_pred, n_features)
+
+    log_experiment(
+        model_name="stacking",
+        params=config,
+        results=results
+    )
+
+    return stacking_model
