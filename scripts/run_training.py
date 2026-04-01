@@ -1,10 +1,10 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from src.pipelines.preprocessing import build_preprocessor
+from src.pipelines.preprocessing import build_linear_preprocessor, build_tree_preprocessor
 from src.models.train import run_all_models, run_ensemble
 from src.models.prediction import run_prediction
-from src.config.config import ENSEMBLE_CONFIG 
+from src.config.config import CONFIG
 
 def add_advanced_metrics(df):
     df_advanced = df.copy()
@@ -119,8 +119,12 @@ def main():
     # Combine all features
     all_features = default_features + advanced_metrics + normalize_metrics
 
-    data_df = add_advanced_metrics(data_df)
-    predict_df = add_advanced_metrics(predict_df)
+    data_df = add_advanced_metrics(df=data_df)
+    predict_df = add_advanced_metrics(df=predict_df)
+
+    # Remove unused columns
+    unused_cols = [col for col in data_df.columns if col.startswith(('franchID', 'teamID', 'decade_label'))]
+    data_df = data_df.drop(unused_cols, axis=1)
 
     # Filter features that exist in both datasets
     available_features = [col for col in all_features if col in data_df.columns and col in predict_df.columns]
@@ -137,12 +141,8 @@ def main():
     # Separate features and target variable
     X = data_df[available_features]
     y = data_df['W']
+    
     print(X.info())
-
-    # Remove era/decade columns
-    # one_hot_cols = [col for col in X.columns if col.startswith(('era_', 'decade_'))]
-    # X = X.drop(one_hot_cols, axis=1)
-    # print("X data types:\n", X.dtypes)
 
     # import sys
     # sys.exit("test...")
@@ -168,13 +168,16 @@ def main():
     # print(f"numerical_cols", numerical_cols)
     
     # preprocessor = build_preprocessor(num_features=numerical_cols, cat_features=categorical_cols)
-    preprocessor = build_preprocessor(num_features=numerical_cols, cat_features=None)
+    preprocessors = {
+        "linear": build_linear_preprocessor(num_features=numerical_cols, cat_features=None),
+        "tree": build_tree_preprocessor(num_features=numerical_cols, cat_features=None)
+    }
 
     # -------------------------
     # 3. Run pipelines and predictions
     # -------------------------
     trained_pipelines = run_all_models(
-        preprocessor=preprocessor, 
+        preprocessors=preprocessors, 
         X_train=X_train, 
         y_train=y_train, 
         X_test=X_test, 
@@ -184,14 +187,23 @@ def main():
     )
     # print(trained_pipelines)
 
-    if ENSEMBLE_CONFIG["enabled"]:
+    ensemble_config = CONFIG["ensemble"]
+    if ensemble_config["enabled"]:
         # Number of features for meta-model is simply the number of base model predictions
-        n_features = len(ENSEMBLE_CONFIG["base_models"])
+        n_features = len(ensemble_config["base_models"])
         ensemble_model = run_ensemble(
-            X_train, y_train, X_test, y_test, ENSEMBLE_CONFIG, n_features
+            X_train=X_train, 
+            y_train=y_train, 
+            X_test=X_test, 
+            y_test=y_test, 
+            config=ensemble_config, 
+            n_features=n_features
         )
 
-        run_prediction(predict_df, available_features, ensemble_model)
+        run_prediction(
+            predictions=predict_df, 
+            features=available_features, 
+            pipeline=ensemble_model)
 
 if __name__ == "__main__":
     main()
