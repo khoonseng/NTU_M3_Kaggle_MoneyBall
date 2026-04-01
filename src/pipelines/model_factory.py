@@ -1,10 +1,12 @@
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from lightgbm import LGBMRegressor
 
 MODEL_REGISTRY = {
     "linear": LinearRegression,
     "ridge": Ridge,
     "lasso": Lasso,
     "elasticnet": ElasticNet,
+    "lightgbm": LGBMRegressor
 }
 
 def get_model(model_name, params=None):
@@ -12,8 +14,5 @@ def get_model(model_name, params=None):
 
     if model_name not in MODEL_REGISTRY:
         raise ValueError(f"Model '{model_name}' not supported")
-    
-    # if model_name == "lasso":
-    #     return Lasso(max_iter=10000, **params)
 
     return MODEL_REGISTRY[model_name](**params)

@@ -18,7 +18,8 @@ def build_stacking_model(config):
     stacking_model = StackingRegressor(
         estimators=base_models,
         final_estimator=final_model,
-        n_jobs=-1
+        n_jobs=-1,
+        cv=5
     )
 
     return stacking_model
