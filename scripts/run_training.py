@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from src.pipelines.preprocessing import build_linear_preprocessor, build_tree_preprocessor
+from src.pipelines.preprocessing import build_linear_preprocessor, build_tree_preprocessor, build_pca_preprocessor
 from src.models.train import run_all_models, run_ensemble
 from src.models.prediction import run_prediction
 from src.config.config import CONFIG
@@ -170,7 +170,8 @@ def main():
     # preprocessor = build_preprocessor(num_features=numerical_cols, cat_features=categorical_cols)
     preprocessors = {
         "linear": build_linear_preprocessor(num_features=numerical_cols, cat_features=None),
-        "tree": build_tree_preprocessor(num_features=numerical_cols, cat_features=None)
+        "tree": build_tree_preprocessor(num_features=numerical_cols, cat_features=None),
+        "pca": build_pca_preprocessor(num_features=numerical_cols, cat_features=None)
     }
 
     # -------------------------

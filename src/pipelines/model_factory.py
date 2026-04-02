@@ -1,12 +1,14 @@
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 from lightgbm import LGBMRegressor
+# from sklearn.decomposition import PCA
 
 MODEL_REGISTRY = {
     "linear": LinearRegression,
     "ridge": Ridge,
     "lasso": Lasso,
     "elasticnet": ElasticNet,
-    "lightgbm": LGBMRegressor
+    "lightgbm": LGBMRegressor,
+    "lightgbm_pca": LGBMRegressor
 }
 
 def get_model(model_name, params=None):

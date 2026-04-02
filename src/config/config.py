@@ -4,7 +4,8 @@ CONFIG = {
         {"name": "lasso", "gridsearch": True},
         {"name": "ridge", "gridsearch": True},
         {"name": "elasticnet", "gridsearch": True},
-        {"name": "lightgbm", "gridsearch": False}
+        {"name": "lightgbm", "gridsearch": False},
+        {"name": "lightgbm_pca", "gridsearch": False}
     ],
     "model_type": {
         "linear": "linear",
@@ -12,6 +13,7 @@ CONFIG = {
         "ridge": "linear",
         "elasticnet": "linear",
         "lightgbm": "tree",
+        "lightgbm_pca": "pca"
     },
     "models": {
         "linear": {
@@ -92,6 +94,34 @@ CONFIG = {
                 # "model__colsample_bytree": [0.7, 0.8, 1.0],
                 # "model__reg_alpha": [0, 0.1, 0.5],
                 # "model__reg_lambda": [0, 0.1, 0.5]
+            }
+        },
+        "lightgbm_pca": {
+            "params": {
+                "objective": "regression_l1",
+                "metric": "l1",
+
+                "n_estimators": 200,
+                "learning_rate": 0.05,
+
+                "num_leaves": 31,
+                "max_depth": -1,
+
+                "min_child_samples": 20,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+
+                "reg_alpha": 0.1,
+                "reg_lambda": 0.1,
+
+                "random_state": 42,
+                "n_jobs": -1,
+                "verbose": -1
+            },
+            "param_dist": {
+                "preprocessor__num__pca__n_components": [0.8, 0.9, 0.95],
+                "model__num_leaves": [31, 63],
+                "model__learning_rate": [0.05, 0.1]
             }
         }
     },

@@ -78,6 +78,9 @@ def train_model(model_name, preprocessor, X_train, y_train, X_test, y_test, use_
 
         if model_name == "lightgbm":
             n_features = X_train.shape[1]
+        elif model_name == "lightgbm_pca":
+            pca = pipeline.named_steps["preprocessor"].named_transformers_["num"].named_steps["pca"]
+            n_features = pca.n_components_
         else:
             n_features = pipeline.named_steps["preprocessor"].get_feature_names_out().shape[0]
 
@@ -129,6 +132,11 @@ def display_top_features(best_model, no_of_features: int):
     pipeline_model = best_model.named_steps["model"]
     pipeline_preprocessor = best_model.named_steps["preprocessor"]
     pipeline_feature_names = pipeline_preprocessor.get_feature_names_out()
+
+    
+    if "pca" in pipeline_preprocessor.named_transformers_["num"].named_steps:
+        print("PCA applied — feature importance not directly interpretable")
+        return
 
     if hasattr(pipeline_model, "coef_"):
         # Linear models
