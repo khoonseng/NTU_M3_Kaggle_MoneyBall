@@ -1,11 +1,18 @@
 CONFIG = {
     "models_to_run": [        
-        {"name": "linear", "type": "linear", "gridsearch": False},
-        {"name": "lasso", "type": "linear", "gridsearch": True},
-        {"name": "ridge", "type": "linear", "gridsearch": True},
-        {"name": "elasticnet", "type": "linear", "gridsearch": True},
-        {"name": "lightgbm", "type": "tree", "gridsearch": False}
+        {"name": "linear", "gridsearch": False},
+        {"name": "lasso", "gridsearch": True},
+        {"name": "ridge", "gridsearch": True},
+        {"name": "elasticnet", "gridsearch": True},
+        {"name": "lightgbm", "gridsearch": False}
     ],
+    "model_type": {
+        "linear": "linear",
+        "lasso": "linear",
+        "ridge": "linear",
+        "elasticnet": "linear",
+        "lightgbm": "tree",
+    },
     "models": {
         "linear": {
             "params": {}
@@ -88,16 +95,22 @@ CONFIG = {
             }
         }
     },
-    "search": {
-        "method": "random",  # "grid" or "random"
+    "linear_search": {
+        "method": "grid",  # "grid" or "random"
         "scoring": {
             "mae": "neg_mean_absolute_error",
             "rmse": "neg_root_mean_squared_error",
             "r2": "r2"
         },
         "refit_metric": "mae",  # primary metric for selecting best model        
-        # "scoring": "neg_mean_absolute_error",
-        # "refit_metric": "neg_mean_absolute_error",
+        "n_iter": 30,
+        "cv": 5,
+        "n_jobs": -1
+    },
+    "tree_search": {
+        "method": "random",  # "grid" or "random"     
+        "scoring": "neg_mean_absolute_error",
+        "refit_metric": "neg_mean_absolute_error",
         "n_iter": 10,
         "cv": 3,
         "n_jobs": -1
