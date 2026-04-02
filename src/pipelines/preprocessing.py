@@ -59,7 +59,7 @@ def build_pca_preprocessor(num_features, cat_features, n_components=0.95):
     numerical_pipeline = Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler", StandardScaler()),
-        ("pca", PCA(n_components=n_components))
+        ("pca", PCA(n_components=n_components, svd_solver="full", random_state=42))
     ])
 
     categorical_pipeline = Pipeline([
