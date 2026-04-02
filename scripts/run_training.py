@@ -71,6 +71,25 @@ def add_advanced_metrics(df):
     # Step 5: Calculate On-Base Plus Slugging (OPS)
     df_advanced['OPS'] = df_advanced['OBP'] + df_advanced['SLG']
 
+    # Interaction between pitching and defense
+    df_advanced['WHIP_x_FP'] = df_advanced['WHIP'] * df_advanced['FP'] # Fielding Percentage
+
+    # Interaction between offense and era-normalization
+    df_advanced['offense_index'] = df_advanced['R_per_G'] / df_advanced['mlb_rpg']
+    df_advanced['OPS_x_offense_index'] = df_advanced['OPS'] * df_advanced['offense_index']
+
+    # Example for franchise-level statistics
+    # franchise_stats = df_advanced.groupby('franchID').agg({
+    #                                     'R': ['mean', 'std', 'min', 'max'],
+    #                                     'RA': ['mean', 'std'],
+    #                                     'OPS': ['mean', 'std']
+    #                                 })
+    # # Flatten the multi-level column names
+    # franchise_stats.columns = ['_'.join(col).strip() for col in franchise_stats.columns.values]
+    # # Merge these new features back into the main DataFrame
+    # df_advanced = df_advanced.merge(franchise_stats, on='franchID', how='left')
+
+
     # Remove original features after adding metrics [Leave the removal of features to Lasso instead of manually removing them]
     # original_offensive_features = ['R', 'AB', 'H', '2B', '3B', 'HR', 'BB', 'SO', 'SB']
     # original_pitching_features = ['RA', 'ER', 'CG', 'SHO', 'SV', 'IPouts', 'HA', 'HRA', 'BBA', 'SOA']
@@ -111,10 +130,11 @@ def main():
 
     # Advanced metrics
     advanced_metrics = ['IP', 'WHIP', 'BA', 'OBP', 'SLG', 'OPS']
-    offensive_per_game_metrics = ['R_per_G', 'AB_per_G', 'H_per_G', '2B_per_G', '3B_per_G', 'HR_per_G', 'BB_per_G', 'SO_per_G', 'SB_per_G', '1B_per_G', 'Total_Bases_per_G']
+    offensive_per_game_metrics = ['R_per_G', 'AB_per_G', 'H_per_G', '2B_per_G', '3B_per_G', 'HR_per_G', 'BB_per_G', 'SO_per_G', 'SB_per_G', '1B_per_G', 'Total_Bases_per_G', 'WHIP_x_FP', 'offense_index','OPS_x_offense_index']
     pitching_per_game_metrics = ['RA_per_G', 'ER_per_G', 'CG_per_G', 'SHO_per_G', 'SV_per_G', 'IPouts_per_G', 'HA_per_G', 'HRA_per_G', 'BBA_per_G', 'SOA_per_G'] 
     defensive_per_game_metrics = ['E_per_G', 'DP_per_G']
-    normalize_metrics = offensive_per_game_metrics + pitching_per_game_metrics + defensive_per_game_metrics
+    franchise_metrics = ['R_mean', 'R_std', 'R_min', 'R_max', 'RA_mean', 'RA_std', 'OPS_mean', 'OPS_std']
+    normalize_metrics = offensive_per_game_metrics + pitching_per_game_metrics + defensive_per_game_metrics + franchise_metrics
 
     # Combine all features
     all_features = default_features + advanced_metrics + normalize_metrics
@@ -123,7 +143,7 @@ def main():
     predict_df = add_advanced_metrics(df=predict_df)
 
     # Remove unused columns
-    unused_cols = [col for col in data_df.columns if col.startswith(('franchID', 'teamID', 'decade_label'))]
+    unused_cols = [col for col in data_df.columns if col.startswith(('teamID', 'decade_label'))]
     data_df = data_df.drop(unused_cols, axis=1)
 
     # Filter features that exist in both datasets
@@ -138,12 +158,13 @@ def main():
     # data_df[bool_cols] = data_df[bool_cols].astype(int)
     # predict_df[bool_cols] = predict_df[bool_cols].astype(int)
 
+    # print(data_df.head())
+
     # Separate features and target variable
     X = data_df[available_features]
     y = data_df['W']
     
     print(X.info())
-
     # import sys
     # sys.exit("test...")
 
