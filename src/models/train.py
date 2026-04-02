@@ -21,13 +21,14 @@ def train_model(model_name, preprocessor, X_train, y_train, X_test, y_test, use_
         print(f"Loading existing model: {model_name}")
         return load_model(model_name, ensemble_config["model_dir"])
 
+    model_type = CONFIG["model_type"][model_name]
     model_config = CONFIG["models"][model_name]
     model = get_model(model_name, model_config["params"])
     pipeline = build_pipeline(preprocessor, model)
     pipeline.fit(X_train, y_train)
 
     if use_GridSearch:
-        search_config = CONFIG["search"]
+        search_config = CONFIG[model_type +"_search"]
         search = run_grid_search(
             pipeline,
             model_config,
@@ -99,7 +100,7 @@ def run_all_models(preprocessors, X_train, y_train, X_test, y_test, predict_df, 
 
     for models in CONFIG["models_to_run"]:
         model_name = models["name"]
-        model_type = models["type"]
+        model_type = CONFIG["model_type"][model_name]
         use_grid = models["gridsearch"]
         preprocessor = preprocessors[model_type]
 
