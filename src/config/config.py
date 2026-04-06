@@ -147,7 +147,7 @@ CONFIG = {
     },
     "ensemble": {
         "enabled": True,
-        "base_models": ["linear", "lasso", "ridge", "elasticnet", "lightgbm"],
+        "base_models": ["linear", "lasso", "ridge", "elasticnet", "lightgbm_pca"],
         "final_model": "elasticnet",  # "ridge" or "elasticnet"
         "use_saved_models": True,
         "model_dir": "models"
