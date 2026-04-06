@@ -175,8 +175,8 @@ def main():
     data_df = add_advanced_metrics(df=data_df)
     predict_df = add_advanced_metrics(df=predict_df)
 
-    data_df = add_era_metrics(df=data_df)
-    predict_df = add_era_metrics(df=predict_df)
+    # data_df = add_era_metrics(df=data_df)
+    # predict_df = add_era_metrics(df=predict_df)
 
     # Remove unused columns
     unused_cols = [col for col in data_df.columns if col.startswith(('teamID', 'decade_label'))]
