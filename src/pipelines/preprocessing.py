@@ -1,7 +1,7 @@
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, FunctionTransformer
+from sklearn.preprocessing import StandardScaler, FunctionTransformer, OneHotEncoder
 from sklearn.decomposition import PCA
 
 def convert_bool_to_int(df):
@@ -16,7 +16,7 @@ def build_linear_preprocessor(num_features, cat_features=None):
 
     categorical_pipeline = Pipeline([
         ('to_int', FunctionTransformer(func=convert_bool_to_int, feature_names_out="one-to-one")),
-        ("imputer", SimpleImputer(strategy="most_frequent"))
+        ("imputer", SimpleImputer(strategy="most_frequent")),
         # ("encoder", OneHotEncoder(handle_unknown="ignore"))
     ])
 
@@ -39,7 +39,7 @@ def build_tree_preprocessor(num_features, cat_features=None):
 
     categorical_pipeline = Pipeline([
         ('to_int', FunctionTransformer(func=convert_bool_to_int, feature_names_out="one-to-one")),
-        ("imputer", SimpleImputer(strategy="most_frequent"))
+        ("imputer", SimpleImputer(strategy="most_frequent")),
         # ("encoder", OneHotEncoder(handle_unknown="ignore"))
     ])
 
@@ -64,7 +64,8 @@ def build_pca_preprocessor(num_features, cat_features, n_components=0.95):
 
     categorical_pipeline = Pipeline([
         ('to_int', FunctionTransformer(func=convert_bool_to_int, feature_names_out="one-to-one")),
-        ("imputer", SimpleImputer(strategy="most_frequent"))
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        # ("encoder", OneHotEncoder(handle_unknown="ignore"))
     ])
 
     if cat_features is not None:
